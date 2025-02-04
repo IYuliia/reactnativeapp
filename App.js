@@ -2,9 +2,14 @@ import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
-import { StyleSheet, Text, View, Button } from 'react-native';
+import { StyleSheet} from 'react-native';
 import { useEffect } from 'react';
-import LoginScreen from './screens/LoginScreen';
+import { NavigationContainer } from "@react-navigation/native";
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+
+import StackNavigator from './navigation/StackNavigator';
+
+
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -25,7 +30,11 @@ export default function App() {
   }
 
   return (
-    <LoginScreen />
+    <GestureHandlerRootView style={{ flex: 1 }}>
+    <NavigationContainer>
+      <StackNavigator />
+    </NavigationContainer>
+  </GestureHandlerRootView>
   );
 }
 
