@@ -54,16 +54,12 @@ const CreatePostScreen = ({ navigation, route }) => {
     setSelectedImage(params.photo);
   }, [params]);
 
-  const onPublish = async () => {
-    if (!user) return;
+  const onPublishHandler = () => {
+    console.log({ title, address });
+    navigation.navigate("Posts");
+  };
 
-    try {
-      
-    } catch (error) {
-      console.log(error)
-    }
-  }
-
+  const isAllowed =!!title && !!address;
   return (
     <View style={styles.section}>
       <View style={styles.imageContainer}>
@@ -144,7 +140,7 @@ const CreatePostScreen = ({ navigation, route }) => {
         />
       </View>
 
-      <Button onPress={onPublish}>
+      <Button disabled={!isAllowed} onPress={onPublishHandler}>
         <Text style={styles.btnText}>Опублікувати</Text>
       </Button>
 
@@ -227,6 +223,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.light_gray,
+    backgroundColor: colors.light_grey,
   }
 });

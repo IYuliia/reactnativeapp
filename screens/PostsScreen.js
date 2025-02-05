@@ -1,10 +1,20 @@
-import { Image, StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { colors } from "../styles/global";
 import { FlatList } from "react-native-gesture-handler";
 import CommentsIcon from "../icons/CommentsIcon";
 import LocationIcon from "../icons/LocationIcon";
 
-const PostsScreen = () => {
+
+const PostsScreen = ({ navigation }) => {
+ 
+
+  const navigateToCommentsScreen = () => {
+    navigation.navigate('Comments');
+  };
+
+  const navigateToMapScreen = () => {
+    navigation.navigate('Map');
+  };
   
 
   const posts = [
@@ -29,14 +39,18 @@ const PostsScreen = () => {
             <Image style={styles.postImage} source={item.image} />
             <Text style={styles.postTitle}>{item.title}</Text>
             <View style={styles.detailsContainer}>
+              <TouchableOpacity onPress={navigateToCommentsScreen}>
                 <View style={styles.detailItem}>
                     <CommentsIcon />
                     <Text style={styles.commentText}>{item.commentsAmount}</Text>
                 </View>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={navigateToMapScreen}>
                 <View style={styles.detailItem}>
                     <LocationIcon />
                     <Text style={styles.locationText}>{item.location}</Text>
                 </View>
+                </TouchableOpacity>
             </View>
         </View>
   );

@@ -3,13 +3,12 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 
 import LogoutButton from "../components/logoutButton";
 import BackButton from "../components/backButton";
-import PostsScreen from "../screens/PostsScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import PostsButton from "../components/PostsButton";
 import ProfileButton from "../components/ProfileButton";
 import { colors } from "../styles/global";
-import MapScreen from "../screens/MapScreen";
 import CreatePostNavigator from "./CreatePostNavigator";
+import HandlePostNavigator from "./HandlePostNavigator";
 import { View, StyleSheet } from "react-native";
 
 const Tab = createBottomTabNavigator();
@@ -34,39 +33,42 @@ const BottomTabNavigator = () => {
       }}
     >
      
-      <Tab.Screen
-        name="Posts"
-        component={PostsScreen}
-        options={({ navigation }) => ({
-          title: "Публікації",
-          tabBarLabel: "",
-          
-          headerRight: () => (
-            <LogoutButton
-              onPress={() => {
-                console.log("logout button");
-              }}
-            />
-          ),
-        //   headerLeft: () => <BackButton onPress={() => navigation.goBack()} />,
-          tabBarIcon: ({ focused }) => (
-            <PostsButton
-              focused={focused}
-              onPress={() => {
-                console.log("Posts button pressed");
-              }}
-            />
-          ),
-          // tabBarBadge: "2",
-          tabBarActiveTintColor: "red",
-        })}
-      />
+     <Tab.Screen
+  name="HandlePostsStack"
+  component={HandlePostNavigator}
+  options={({ navigation, route }) => {
+    const routeName = route.state?.routes?.[route.state.index]?.name ?? "Posts";
+    
+    return {
+      title: routeName === "Posts" ? "Публікації" : "",
+      tabBarLabel: "",
+      tabBarStyle: routeName === "Posts" ? {} : { display: "none" }, // Hide tab bar on Map & Comments
+      headerRight: () => (
+        <LogoutButton
+          onPress={() => {
+            console.log("logout button");
+          }}
+        />
+      ),
+      tabBarIcon: ({ focused }) => (
+        <PostsButton
+          focused={focused}
+          onPress={() => {
+            console.log("Posts button pressed");
+          }}
+        />
+      ),
+      tabBarActiveTintColor: "red",
+    };
+  }}
+/>
+
 
       <Tab.Screen
         name="CreatePostStack"
         component={CreatePostNavigator}
         options={({ navigation }) => ({
-          title: "Create Post",
+          title: "Створити публікацію",
           headerShown: false,
           tabBarStyle: { display: "none" },
           tabBarLabel: "",
@@ -102,7 +104,7 @@ const BottomTabNavigator = () => {
         }}
       />
 
-      <Tab.Screen
+      {/* <Tab.Screen
         name="Map"
         component={MapScreen}
         options={{
@@ -112,7 +114,7 @@ const BottomTabNavigator = () => {
           headerLeft: () => <BackButton />,
           tabBarButton: () => null,
         }}
-      />
+      /> */}
 
     </Tab.Navigator>
   );
