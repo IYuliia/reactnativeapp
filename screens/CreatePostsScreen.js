@@ -1,340 +1,232 @@
+import { FC, useEffect, useState } from "react";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import Ionicons from '@expo/vector-icons/Ionicons'
+import "react-native-get-random-values";
+import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
+import * as ImagePicker from 'expo-image-picker';
+
 import { colors } from "../styles/global";
-import CameraIcon from "../icons/CameraIcon";
-import TrashIcon from "../icons/TrashIcon";
-import React, { useState, useRef } from "react";
-import { Button } from "react-native";
-import { useRoute } from "@react-navigation/native";
 
-import DisabledButton from "../components/DisabledButton";
-import PostInput from "../components/PostInput";
-import LocationIcon from "../icons/LocationIcon";
-import { useNavigation } from "@react-navigation/native";
+import Button from "../components/Button";
+import Input from "../components/Input";
 
-const CreatePostsScreen = () => {
-  const [title, setTitle] = useState("");
-  const [location, setLocation] = useState("");
-  const [capturedImage, setCapturedImage] = useState(null);
-  const navigation = useNavigation();
+const PLACES_KEY = "AIzaSyAhxqfyeRiiSj3Os9KyN3TcVFCxk6hQqh0";
 
-  const handleTitleChange = (text) => setTitle(text);
-  const handleLocationChange = (text) => setLocation(text);
+const CreatePostScreen = ({ navigation, route }) => {
+  const params = route?.params;
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [title, setTitle] = useState('');
+  const [address, setAddress] = useState('');
 
-  const onPublish = () => {
-    console.log("Publish");
+  const navigateToCameraScreen = () => {
+    navigation.navigate('Camera');
   };
 
-  const handleDeletePress = () => {
-    console.log("Delete");
+  const pickImage = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permissionResult.granted) {
+      alert("Permission to access media library is required!");
+      return;
+    }
+  
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: "images",
+      allowsEditing: false,
+      quality: 1,
+    });
+  
+    if (!result.canceled) {
+      const uri = result.assets[0].uri;
+
+      setSelectedImage(uri);
+    }
   };
 
-  // const openCameraScreen = () => {
-  //   navigation.navigate("Camera", {
-  //     onReturnImage: (imageUri) => setCapturedImage(imageUri)
-  //   });
-  // };
+  const onClearData = () => {
+    setSelectedImage('');
+    setTitle('')
+    setAddress('');
+  }
 
-  const openCameraScreen = () => {
-    navigation.navigate("Camera");
-  };
+  useEffect(() => {
+    if (!params?.photo) return;
+
+    setSelectedImage(params.photo);
+  }, [params]);
+
+  const onPublish = async () => {
+    if (!user) return;
+
+    try {
+      
+    } catch (error) {
+      console.log(error)
+    }
+  }
 
   return (
-    <View style={styles.container}>
-      <Image style={styles.placeholder} />
-      <View style={styles.placeholderOverlay}>
-        <TouchableOpacity onPress={openCameraScreen}>
-          <View style={styles.placeholderCircle}>
-            <CameraIcon />
-          </View>
+    <View style={styles.section}>
+      <View style={styles.imageContainer}>
+        <View style={styles.emptyImgContainer}>
+          {selectedImage && (
+            <Image
+              source={{ uri: selectedImage }}
+              style={styles.image}
+            />
+          )}
+          
+          <TouchableOpacity
+            style={styles.cameraIconWrapper}
+            onPress={navigateToCameraScreen}
+            hitSlop={20}
+          >
+            <Ionicons
+              name="camera"
+              size={34}
+              color="gray"
+            />
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity onPress={pickImage}>
+          <Text style={[styles.btnText, styles.grayText]}>
+            Завантажте фото
+          </Text>
         </TouchableOpacity>
       </View>
-      <Text style={styles.text}>Завантажте фото</Text>
-      <View style={[styles.innerContainer, styles.inputContainer]}>
-        <PostInput
+      
+      <View style={{ flex: 1 }}>
+        <Input
           value={title}
-          autofocus={true}
           placeholder="Назва..."
-          onTextChange={handleTitleChange}
+          outerStyles={styles.input}
+          onTextChange={setTitle}
         />
 
-        <PostInput
-          value={location}
+        <GooglePlacesAutocomplete
           placeholder="Місцевість..."
-          leftButton={<LocationIcon />}
-          onTextChange={handleLocationChange}
+          minLength={4}
+          enablePoweredByContainer={false}
+          fetchDetails
+          onPress={(data, details = null) => {
+            setAddress(data.description);
+          }}
+          query={{ key: PLACES_KEY }}
+          styles={{
+            container: {
+              flex: 1,
+            },
+            textInputContainer: {
+              flexDirection: 'row',
+              paddingHorizontal: 8,
+            },
+            textInput: {
+              paddingVertical: 5,
+              paddingHorizontal: 10,
+              fontSize: 15,
+              flex: 1,
+              borderBottomWidth: 1,
+              borderColor: colors.border_gray
+            },
+            row: {
+              backgroundColor: '#FFFFFF',
+              padding: 13,
+              height: 44,
+              flexDirection: 'row',
+            },
+            predefinedPlacesDescription: {
+              color: '#1faadb',
+            },
+            listView: {
+              maxHeight: 160,
+            }
+          }}
         />
       </View>
-      <View style={styles.buttonContainer}>
-        <DisabledButton onPress={onPublish}>
-          <Text style={[styles.text, styles.buttonText]}>Опублікувати</Text>
-        </DisabledButton>
-      </View>
-      <TouchableOpacity style={styles.trashButton} onPress={handleDeletePress}>
-        <TrashIcon />
-      </TouchableOpacity>
+
+      <Button onPress={onPublish}>
+        <Text style={styles.btnText}>Опублікувати</Text>
+      </Button>
+
+      <Button
+        buttonStyle={styles.deleteBtn}
+        onPress={onClearData}
+      >
+        <Ionicons
+          name="trash"
+          color={colors.text_gray}
+          size={24}
+        />
+      </Button>
     </View>
   );
 };
 
+export default CreatePostScreen;
+
 const styles = StyleSheet.create({
-  container: {
+  section: {
     flex: 1,
-    backgroundColor: colors.white,
+    gap: 32,
+    paddingVertical: 32,
     paddingHorizontal: 16,
-    paddingTop: 32,
-  },
-  postImage: {
-    width: "100%",
-    borderRadius: 8,
-    height: 240,
-  },
-  placeholder: {
-    width: "100%",
-    borderRadius: 8,
-    height: 240,
-    backgroundColor: colors.light_grey,
-    marginBottom: 8,
-  },
-  placeholderCircle: {
-    width: 60,
-    height: 60,
     backgroundColor: colors.white,
-    borderRadius: 30,
-    justifyContent: "center",
-    alignItems: "center",
   },
-  placeholderOverlay: {
-    position: "absolute",
-    top: 40,
-    left: 20,
-    width: "100%",
-    height: 240,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  text: {
+  btnText: {
     fontSize: 16,
-    fontWeight: 400,
-    color: colors.border_grey,
-  },
-  innerContainer: {
-    gap: 16,
-  },
-  inputContainer: {
-    marginTop: 32,
-  },
-  locationInputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  buttonContainer: {
-    marginTop: 32,
-  },
-  buttonText: {
+    lineHeight: 18,
+    fontWeight: "400",
+    color: colors.white,
     textAlign: "center",
   },
-  trashButton: {
-    width: 70,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.light_grey,
-    position: "absolute",
-    bottom: 34,
-    left: "50%",
-    justifyContent: "center",
-    alignItems: "center",
-    transform: [{ translateX: -25 }],
+  grayText: {
+    textAlign: "left",
+    color: colors.text_gray,
   },
-  cameraContainer: {
+  imageContainer: {
+    gap: 8,
+  },
+  emptyImgContainer: {
     width: "100%",
     height: 240,
-    backgroundColor: colors.light_grey,
     borderRadius: 8,
-    overflow: "hidden",
-    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: colors.border_gray,
+    backgroundColor: colors.light_gray,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  camera: {
-    flex: 1,
-    justifyContent: "flex-end",
+  cameraIconWrapper: {
+    position: "absolute",
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: colors.white,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  imagePreview: {
+  image: {
     width: "100%",
     height: "100%",
     borderRadius: 8,
   },
-  buttonContainer: {
-    flexDirection: "row",
+  input: {
+    borderTopWidth: 0,
+    borderLeftWidth: 0,
+    borderRightWidth: 0,
+    backgroundColor: colors.white,
+  },
+  deleteBtn: {
+    position: "absolute",
+    left: "46%",
+    bottom: "14%",
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+    width: 70,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
     justifyContent: "center",
-    paddingBottom: 20,
-    backgroundColor: "transparent",
-  },
-  button: {
-    backgroundColor: "white",
-    padding: 10,
-    margin: 10,
-    borderRadius: 50,
-  },
+    backgroundColor: colors.light_gray,
+  }
 });
-
-export default CreatePostsScreen;
-
-// import { Camera, useCameraPermissions } from "expo-camera";
-// import { useRef, useState, useEffect } from "react";
-// import { Button, Image, StyleSheet, Text, TouchableOpacity, View, TextInput } from "react-native";
-// import * as MediaLibrary from "expo-media-library";
-
-// import CameraIcon from "../icons/CameraIcon";
-// import { colors } from "../styles/global";
-
-// const CreatePostsScreen = () => {
-//   const [facing, setFacing] = useState("back");
-//   const [permission, requestPermission] = useCameraPermissions();
-//   const [permissionResponse, requestLibraryPermission] = MediaLibrary.usePermissions();
-//   const [capturedImage, setCapturedImage] = useState(null);
-//   const [title, setTitle] = useState("");
-//   const [location, setLocation] = useState("");
-//   const cameraRef = useRef(null);
-
-//   useEffect(() => {
-//     if (!permission?.granted) {
-//       requestPermission();
-//     }
-//     if (!permissionResponse?.granted) {
-//       requestLibraryPermission();
-//     }
-//   }, []);
-
-//   function toggleCameraFacing() {
-//         setFacing((current) => (current === "back" ? "front" : "back"));
-//       }
-
-//   const takePhoto = async () => {
-//     if (cameraRef.current) {
-//       const photo = await cameraRef.current.takePictureAsync();
-//       setCapturedImage(photo.uri);
-//       await MediaLibrary.saveToLibraryAsync(photo.uri);
-//     }
-//   };
-
-//   if (!permission?.granted) {
-//     return (
-//       <View style={styles.permissionContainer}>
-//         <Text style={styles.message}>We need your permission to show the camera</Text>
-//         <Button onPress={requestPermission} title="Grant permission" />
-//       </View>
-//     );
-//   }
-
-//   return (
-//     <View style={styles.container}>
-//       <View style={styles.cameraContainer}>
-//         {capturedImage ? (
-//           <Image source={{ uri: capturedImage }} style={styles.imagePreview} />
-//         ) : (
-//           <Camera style={styles.camera} type={facing} ref={cameraRef}>
-//             <View style={styles.buttonContainer}>
-//               <TouchableOpacity style={styles.button} onPress={toggleCameraFacing}>
-//                 <Text style={styles.text}>Flip</Text>
-//               </TouchableOpacity>
-//               <TouchableOpacity style={styles.button} onPress={takePhoto}>
-//                 <CameraIcon />
-//               </TouchableOpacity>
-//             </View>
-//           </Camera>
-//         )}
-//       </View>
-
-//       <TextInput
-//         style={styles.input}
-//         placeholder="Назва..."
-//         value={title}
-//         onChangeText={setTitle}
-//       />
-//       <TextInput
-//         style={styles.input}
-//         placeholder="Місцевість..."
-//         value={location}
-//         onChangeText={setLocation}
-//       />
-
-//       <TouchableOpacity
-//         style={styles.publishButton}
-//         onPress={() => console.log("Publishing", { title, location, capturedImage })}
-//       >
-//         <Text style={styles.publishButtonText}>Опублікувати</Text>
-//       </TouchableOpacity>
-//     </View>
-//   );
-// };
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     padding: 16,
-//     backgroundColor: colors.white,
-//   },
-//   permissionContainer: {
-//     flex: 1,
-//     justifyContent: "center",
-//     alignItems: "center",
-//   },
-//   message: {
-//     fontSize: 16,
-//     textAlign: "center",
-//     marginBottom: 16,
-//   },
-//   cameraContainer: {
-//     width: "100%",
-//     height: 240,
-//     backgroundColor: colors.light_grey,
-//     borderRadius: 8,
-//     overflow: "hidden",
-//     marginBottom: 16,
-//   },
-//   camera: {
-//     flex: 1,
-//     justifyContent: "flex-end",
-//   },
-//   imagePreview: {
-//     width: "100%",
-//     height: "100%",
-//     borderRadius: 8,
-//   },
-//   buttonContainer: {
-//     flexDirection: "row",
-//     justifyContent: "center",
-//     paddingBottom: 20,
-//     backgroundColor: "transparent",
-//   },
-//   button: {
-//     backgroundColor: "white",
-//     padding: 10,
-//     margin: 10,
-//     borderRadius: 50,
-//   },
-//   text: {
-//     fontSize: 18,
-//     fontWeight: "bold",
-//     color: colors.primary,
-//   },
-//   input: {
-//     borderBottomWidth: 1,
-//     borderColor: colors.border_grey,
-//     padding: 10,
-//     marginBottom: 16,
-//     fontSize: 16,
-//   },
-//   publishButton: {
-//     backgroundColor: colors.primary,
-//     padding: 16,
-//     borderRadius: 8,
-//     alignItems: "center",
-//   },
-//   publishButtonText: {
-//     color: "white",
-//     fontSize: 16,
-//   },
-// });
-
-// export default CreatePostsScreen;

@@ -3,16 +3,14 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 
 import LogoutButton from "../components/logoutButton";
 import BackButton from "../components/backButton";
-import HomeScreen from "../screens/HomeScreen";
 import PostsScreen from "../screens/PostsScreen";
-import CreatePostsScreen from "../screens/CreatePostsScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import PostsButton from "../components/PostsButton";
-import AddButton from "../components/AddButton";
 import ProfileButton from "../components/ProfileButton";
 import { colors } from "../styles/global";
 import MapScreen from "../screens/MapScreen";
-import CameraScreen from "../screens/CameraScreen";
+import CreatePostNavigator from "./CreatePostNavigator";
+import { View, StyleSheet } from "react-native";
 
 const Tab = createBottomTabNavigator();
 
@@ -35,31 +33,7 @@ const BottomTabNavigator = () => {
         // tabBarLabel: "",
       }}
     >
-      {/* <Tab.Screen
-        name="Home"
-        component={HomeScreen}
-        options={({ navigation }) => ({
-          title: "Home",
-          headerRight: () => (
-            <LogoutButton
-              onPress={() => {
-                console.log("logout button");
-              }}
-            />
-          ),
-          
-        //   headerLeft: () => <BackButton onPress={() => navigation.goBack()} />,
-        //   tabBarIcon: ({ focused }) => (
-        //     <Ionicons
-        //       name="heart-circle"
-        //       size={32}
-        //       color={focused ? "red" : "black"}
-        //     />
-        //   ),
-          tabBarActiveTintColor: "red",
-          tabBarButton: () => null,
-        })}
-      /> */}
+     
       <Tab.Screen
         name="Posts"
         component={PostsScreen}
@@ -87,23 +61,32 @@ const BottomTabNavigator = () => {
           tabBarActiveTintColor: "red",
         })}
       />
+
       <Tab.Screen
-        name="CreatePosts"
-        component={CreatePostsScreen}
-        options={{
-          title: "Створити публікацію",
+        name="CreatePostStack"
+        component={CreatePostNavigator}
+        options={({ navigation }) => ({
+          title: "Create Post",
+          headerShown: false,
+          tabBarStyle: { display: "none" },
           tabBarLabel: "",
-          tabBarStyle: { display: 'none' },
-          headerLeft: () => <BackButton />,
-          tabBarIcon: ({ focused }) => (
-            <AddButton
-              onPress={() => {
-                console.log("add button");
-              }}
+          headerLeft: () => (
+            <BackButton
+              onPress={() => navigation.goBack()}
             />
           ),
-        }}
+          tabBarIcon: ({ focused }) => (
+            <View style={styles.addButton}>
+              <Ionicons
+                size={32}
+                name="add"
+                color={colors.white}
+              />
+            </View>
+          ),
+        })}
       />
+
       <Tab.Screen
         name="Profile"
         component={ProfileScreen}
@@ -118,6 +101,7 @@ const BottomTabNavigator = () => {
           ),
         }}
       />
+
       <Tab.Screen
         name="Map"
         component={MapScreen}
@@ -129,19 +113,20 @@ const BottomTabNavigator = () => {
           tabBarButton: () => null,
         }}
       />
-      <Tab.Screen
-        name="Camera"
-        component={CameraScreen}
-        options={{
-          title: "Камера",
-          tabBarLabel: "",
-          tabBarStyle: { display: 'none' },
-          headerLeft: () => <BackButton />,
-          tabBarButton: () => null,
-        }}
-      />
+
     </Tab.Navigator>
   );
 };
+
+const styles = StyleSheet.create({
+  addButton: {
+    width: 70,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.orange,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});
 
 export default BottomTabNavigator;

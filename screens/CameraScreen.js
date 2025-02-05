@@ -1,25 +1,23 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
 import { Text, View, TouchableOpacity, StyleSheet, Button } from "react-native";
-import { Camera, useCameraPermissions } from "expo-camera";
+import { CameraView, useCameraPermissions } from "expo-camera";
 import * as MediaLibrary from "expo-media-library";
 
-export default function CameraScreen() {
+const CameraScreen = ({ navigation }) => {
   const [facing, setFacing] = useState('back');
-  const [permission, requestPermission] = useCameraPermissions();
-  const [permissionResponse, requestLibraryPermission] = MediaLibrary.usePermissions();
+  const [cameraPermission, requestCameraPermission] = useCameraPermissions();
+  const [libraryPermission, requestLibraryPermission] = MediaLibrary.usePermissions();
   const camera = useRef();
 
-  if (!permission) {
-    // Camera permissions are still loading.
+  if (!cameraPermission) {
     return <View />;
   }
 
-  if (!permission.granted) {
-    // Camera permissions are not granted yet.
+  if (!cameraPermission.granted) {
     return (
       <View style={styles.container}>
         <Text style={styles.message}>We need your permission to show the camera</Text>
-        <Button onPress={requestPermission} title="Grant permission" />
+        <Button onPress={requestCameraPermission} title="grant permission" />
       </View>
     );
   }
@@ -31,26 +29,18 @@ export default function CameraScreen() {
   const takePhoto = async () => {
     if (!camera) return;
 
+    if (!libraryPermission.granted) {
+      requestLibraryPermission();
+    }
+
     const image = await camera?.current?.takePictureAsync();
     await MediaLibrary.saveToLibraryAsync(image.uri);
-    console.log('image', image)
+    navigation.replace('CreatePost', { photo: image.uri })
   }
-
-  // const takePhoto = async () => {
-  //   if (camera.current) {
-  //     const image = await camera.current.takePictureAsync();
-  //     if (image && image.uri) {
-  //       await MediaLibrary.saveToLibraryAsync(image.uri);
-  //       console.log('Image saved to library:', image);
-  //     } else {
-  //       console.log('Image capture failed');
-  //     }
-  //   }
-  // };
 
   return (
     <View style={styles.container}>
-      <Camera ref={camera} style={styles.camera} facing={facing}>
+      <CameraView ref={camera} style={styles.camera} facing={facing}>
         <View style={styles.buttonContainer}>
           <TouchableOpacity style={styles.button} onPress={toggleCameraFacing}>
             <Text style={styles.text}>Flip Camera</Text>
@@ -60,10 +50,12 @@ export default function CameraScreen() {
             <Text style={styles.text}>Take Photo</Text>
           </TouchableOpacity>
         </View>
-      </Camera>
+      </CameraView>
     </View>
   );
 }
+
+export default CameraScreen;
 
 const styles = StyleSheet.create({
   container: {
