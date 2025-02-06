@@ -6,6 +6,10 @@ import { StyleSheet} from 'react-native';
 import { useEffect } from 'react';
 import { NavigationContainer } from "@react-navigation/native";
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { Provider, useDispatch, useSelector } from 'react-redux';
+import { PersistGate } from 'redux-persist/integration/react';
+import store from './src/redux/store/store';
+import { authStateChanged } from './src/utils/auth';
 
 import StackNavigator from './navigation/StackNavigator';
 
@@ -28,6 +32,27 @@ export default function App() {
   if (!fontsLoaded) {
     return <ActivityIndicator />;
   }
+
+  return (
+    <Provider store={store.store}>
+      <PersistGate
+        loading={<Text>Loading...</Text>}
+        persistor={store.persistor}
+      >
+        <AuthListener />
+      </PersistGate>
+    </Provider>
+  );
+}
+
+const AuthListener = () => {
+  const dispatch = useDispatch();
+  const user = useSelector((state) => state.user.userInfo);
+
+  useEffect(() => {
+    authStateChanged(dispatch);
+  }, [dispatch]);
+
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
