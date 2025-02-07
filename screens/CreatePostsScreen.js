@@ -1,22 +1,30 @@
-import { FC, useEffect, useState } from "react";
-import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { FC, useEffect, useRef, useState } from "react";
+import { Alert, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Ionicons from '@expo/vector-icons/Ionicons'
 import "react-native-get-random-values";
 import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
 import * as ImagePicker from 'expo-image-picker';
+import 'react-native-get-random-values';
+import { nanoid } from 'nanoid';
 
 import { colors } from "../styles/global";
 
 import Button from "../components/Button";
 import Input from "../components/Input";
+import { useSelector } from "react-redux";
+import { addPost, getPosts, uploadImage } from "../utils/firestore";
 
 const PLACES_KEY = "AIzaSyAhxqfyeRiiSj3Os9KyN3TcVFCxk6hQqh0";
 
 const CreatePostScreen = ({ navigation, route }) => {
   const params = route?.params;
   const [selectedImage, setSelectedImage] = useState(null);
+  const [uploadedImage, setUploadedImage] = useState(null);
   const [title, setTitle] = useState('');
   const [address, setAddress] = useState('');
+  const user = useSelector((state) => state.user.userInfo);
+  const [status, requestPermission] = ImagePicker.useCameraPermissions();
+  const autocompleteRef = useRef(null);
 
   const navigateToCameraScreen = () => {
     navigation.navigate('Camera');
@@ -42,10 +50,31 @@ const CreatePostScreen = ({ navigation, route }) => {
     }
   };
 
+  const uploadImageToStorage = async () => {
+    if (!selectedImage) return;
+
+    try {
+      const response = await fetch(selectedImage);
+      const file = await response.blob();
+      const fileName = selectedImage.split('/').pop(); // Отримуємо ім'я файлу з URI
+      const fileType = file.type; 
+      const imageFile = new File([file], fileName, { type: fileType });
+
+      const uploadedImageUrl = await uploadImage(user.uid, imageFile, fileName);
+
+      return uploadedImageUrl;
+    } catch (e) {
+      console.log(e);
+      return null;
+    }
+  }
+
   const onClearData = () => {
     setSelectedImage('');
+    setUploadedImage('');
     setTitle('')
     setAddress('');
+    autocompleteRef?.current?.setAddressText('');
   }
 
   useEffect(() => {
@@ -54,10 +83,31 @@ const CreatePostScreen = ({ navigation, route }) => {
     setSelectedImage(params.photo);
   }, [params]);
 
-  const onPublishHandler = () => {
-    console.log({ title, address });
-    navigation.navigate("Posts");
-  };
+  // const onPublishHandler = () => {
+  //   console.log({ title, address });
+  //   navigation.navigate("Posts");
+  // };
+  const onPublish = async () => {
+    if (!user) return;
+
+    try {
+      const imageUrl = await uploadImageToStorage();
+      const postId = nanoid()
+
+      await addPost(postId, {
+        address,
+        id: postId,
+        image: imageUrl,
+        userId: user.uid,
+        title,
+      });
+
+      Alert.alert('Пост успішно створено!');
+      onClearData();
+    } catch (error) {
+      console.log(error)
+    }
+  }
 
   const isAllowed =!!title && !!address;
   return (
@@ -101,11 +151,15 @@ const CreatePostScreen = ({ navigation, route }) => {
 
         <GooglePlacesAutocomplete
           placeholder="Місцевість..."
-          minLength={4}
+          // minLength={4}
           enablePoweredByContainer={false}
           fetchDetails
           onPress={(data, details = null) => {
             setAddress(data.description);
+          }}
+          textInputProps={{
+            value:  address,
+            onChangeText: setAddress,
           }}
           query={{ key: PLACES_KEY }}
           styles={{
@@ -122,7 +176,7 @@ const CreatePostScreen = ({ navigation, route }) => {
               fontSize: 15,
               flex: 1,
               borderBottomWidth: 1,
-              borderColor: colors.border_gray
+              borderColor: colors.border_grey,
             },
             row: {
               backgroundColor: '#FFFFFF',
@@ -140,7 +194,7 @@ const CreatePostScreen = ({ navigation, route }) => {
         />
       </View>
 
-      <Button disabled={!isAllowed} onPress={onPublishHandler}>
+      <Button disabled={!isAllowed} onPress={onPublish}>
         <Text style={styles.btnText}>Опублікувати</Text>
       </Button>
 
@@ -187,8 +241,8 @@ const styles = StyleSheet.create({
     height: 240,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: colors.border_gray,
-    backgroundColor: colors.light_gray,
+    borderColor: colors.border_grey,
+    backgroundColor: colors.light_grey,
     alignItems: "center",
     justifyContent: "center",
   },

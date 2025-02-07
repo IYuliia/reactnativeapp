@@ -6,16 +6,20 @@ import { useEffect, useLayoutEffect, useState } from "react";
 import Button from "../components/Button";
 import Avatar from "../components/Avatar";
 import CloseIcon from "../icons/CloseIcon";
+import { registerDB } from "../utils/auth";
 
 
 const { width: SCREEN_WIDTH } = Dimensions.get("screen");
 
 const LoginScreen = ({navigation, route}) => {
 
-const [login, setLogin] = useState("");
+const [name, setName] = useState("");
 const [email, setEmail] = useState("");
 const [password, setPassword] = useState("");
 const [isPasswordVisible, setIsPasswordVisible] = useState(true);
+const [isConfirmVisible, setIsConfirmVisible] = useState(true);
+const [selectedInput, setSelelectedInput] = useState('password');
+
 
 // useEffect(() => {
 //     console.log(route);
@@ -30,31 +34,54 @@ const handleAddAvatar = (value) => {
     console.log("Add avatar");
 }
 
-const handleLoginChange = (value) => {
-    setLogin(value);
+const handleNameChange = (value) => {
+    setName(value);
 }
 
 const handleEmailChange = (value) => {
     setEmail(value);
 };
 
-const handlePasswordChange = (value) => {
-    setPassword(value);
-};
+const handlePasswordChange = (value, isPassword) => {
+    if (isPassword) {
+      setPassword(value);
+    } else {
+      setPasswordConfirm(value)
+    }
+  };
 
-const showPassword = () => {
-    setIsPasswordVisible(prev => !prev)
-}
+  const showPassword = (isPassword) => {
+    if (isPassword) {
+      setIsPasswordVisible(prev => !prev);
+    } else {
+      setIsConfirmVisible(prev => !prev)
+    }
+  };
 
 const onLogin = () => {
     // console.log("login")
     navigation.navigate('Login');
 };
 
-const onSignUp = () => {
-    // console.log("sign up")
-    // navigation.navigate('Signup', { userEmail: email })
-};
+const validate = () => {
+    if (email.length < 1 && password.length < 1 && name.length < 1) return false
+
+    return true;
+  }
+
+  const onSignUp = () => {
+    console.log('Sign up!');
+    const isValid = validate();
+
+    if (isValid) {
+      registerDB(email, password, name);
+    } else {
+      Alert.alert('Помилка!', 'Заповніть всі поля!', [
+        { text: 'Зрозуміло!', onPress: () => {}},
+      ])
+    }
+  };
+
 
 const showButton = (
     <TouchableOpacity
@@ -88,10 +115,10 @@ const showButton = (
                 style={[styles.innerContainer, styles.inputContainer]}>
 
                     <Input 
-                    value = {login}
+                    value = {name}
                     autofocus = {true}
                     placeholder="Логін"
-                    onTextChange={handleLoginChange}
+                    onTextChange={handleNameChange}
                     
                     />
                     <Input 

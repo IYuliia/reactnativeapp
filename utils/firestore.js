@@ -1,5 +1,5 @@
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { db, storage } from '../../config';
+import { db, storage } from '../config';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 
 
@@ -21,7 +21,6 @@ export const addPost = async (userId, post) => {
   }
 };
 
-// Функція для отримання документа з колекції
 export const getUser = async (userId) => {
   const docRef = doc(db, 'users', userId);
   const docSnap = await getDoc(docRef);

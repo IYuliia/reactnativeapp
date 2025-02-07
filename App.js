@@ -1,15 +1,14 @@
 import { StatusBar } from 'expo-status-bar';
-import { ActivityIndicator } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
-import { StyleSheet} from 'react-native';
 import { useEffect } from 'react';
 import { NavigationContainer } from "@react-navigation/native";
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Provider, useDispatch, useSelector } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
-import store from './src/redux/store/store';
-import { authStateChanged } from './src/utils/auth';
+import store from './redux/store/store';
+import { authStateChanged } from './utils/auth';
 
 import StackNavigator from './navigation/StackNavigator';
 

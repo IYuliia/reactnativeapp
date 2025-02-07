@@ -8,6 +8,8 @@ import LocationIcon from "../icons/LocationIcon";
 import LikeIcon from "../icons/LikeIcon";
 import LogoutButton from "../components/logoutButton";
 import CloseIcon from "../icons/CloseIcon";
+// import { updateUserInFirestore } from "../utils/firestore";
+// import { useSelector } from "react-redux";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("screen");
 

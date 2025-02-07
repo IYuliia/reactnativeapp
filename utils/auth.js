@@ -5,7 +5,7 @@ import {
     signOut,
     updateProfile,
   } from 'firebase/auth';
-  import { auth } from '../../config';
+  import { auth } from '../config';
   import { setUserInfo, clearUserInfo } from '../redux/reducers/userSlice';
   import { addUser, getUser } from './firestore';
   
